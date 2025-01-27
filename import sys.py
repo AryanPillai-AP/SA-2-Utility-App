@@ -1,0 +1,136 @@
+import sys
+import subprocess
+import time
+import os
+
+# This function is to clear the screen.
+subprocess.run("cls", shell=True)
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+# This function handles the stock of products.
+def stock_system(item, quantity):
+    item["Stock"] -= quantity
+
+# Title of the machine.
+print("""
+
+▄▀█ █▀█ █▄█ ▄▀█ █▄░█ ▀ █▀   █▀▀ ▄▀█ █▀▀ █▀▀   █▀▄▀█ ▄▀█ █▀▀ █░█ █ █▄░█ █▀▀
+█▀█ █▀▄ ░█░ █▀█ █░▀█ ░ ▄█   █▄▄ █▀█ █▀░ ██▄   █░▀░█ █▀█ █▄▄ █▀█ █ █░▀█ ██▄
+""")
+
+user_money = 0  # No money within the machine as it waits for the user to add the money.
+
+# Nested dictionary of items (8 coffees and 8 cakes and muffins)
+coffee_drinks = {
+    "A1": {"Name": "Frappuccino", "Price": 10, "Stock": 5},
+    "A2": {"Name": "Latte", "Price": 10, "Stock": 5},
+    "A3": {"Name": "Swiss Mocha", "Price": 10, "Stock": 5},
+    "A4": {"Name": "Espresso", "Price": 10, "Stock": 5},
+    "B1": {"Name": "Cafè Machiatto", "Price": 10, "Stock": 5},
+    "B2": {"Name": "Cappuccino", "Price": 10, "Stock": 5},
+    "B3": {"Name": "Americano", "Price": 10, "Stock": 5},
+    "B4": {"Name": "Iced Coffee", "Price": 10, "Stock": 5},
+}
+
+sweet_snacks = {
+    "C1": {"Name": "Strawberry Cheesecake", "Price": 7, "Stock": 3},
+    "C2": {"Name": "Honey Cake", "Price": 7, "Stock": 3},
+    "C3": {"Name": "Vanilla Fruit Cake", "Price": 7, "Stock": 3},
+    "C4": {"Name": "Red Velvet Cake", "Price": 7, "Stock": 3},
+    "D1": {"Name": "Chocolate Muffin", "Price": 5, "Stock": 4},
+    "D2": {"Name": "Blueberry Muffin", "Price": 5, "Stock": 4},
+    "D3": {"Name": "Almonds and Cream Muffin", "Price": 5, "Stock": 4},
+    "D4": {"Name": "Cheddar Muffin", "Price": 5, "Stock": 4},
+}
+
+# Function to display the menu
+def menu():
+    print("\nDrinks:")
+    print("{:<5} {:<20} {:<10} {:<10}".format("Code", "Name", "Price", "Stock"))
+    print("-" * 50)
+    for code, drink in coffee_drinks.items():
+        print("{:<5} {:<20} {:<10} {:<10}".format(code, drink["Name"], drink["Price"], drink["Stock"]))
+
+    print("\nSnacks:")
+    print("{:<5} {:<20} {:<10} {:<10}".format("Code", "Name", "Price", "Stock"))
+    print("-" * 50)
+    for code, snack in sweet_snacks.items():
+        print("{:<5} {:<20} {:<10} {:<10}".format(code, snack["Name"], snack["Price"], snack["Stock"]))
+
+# Start of the machine
+while True:
+    start = input("Welcome to Aryan's Cafe Machine, Would you like to get started? (Yes/No): ").upper()
+    if start == "NO":
+        print("""\n
+▀█▀ █░█ ▄▀█ █▄░█ █▄▀   █▄█ █▀█ █░█   █▀▀ █▀█ █▀█   █░█ █ █▀ █ ▀█▀ █ █▄░█ █▀▀ ░   █▀▀ █▀█ █▀█ █▀▄ █▄▄ █▄█ █▀▀ █
+░█░ █▀█ █▀█ █░▀█ █░█   ░█░ █▄█ █▄█   █▀░ █▄█ █▀▄   ▀▄▀ █ ▄█ █ ░█░ █ █░▀█ █▄█ █   █▄█ █▄█ █▄█ █▄▀ █▄█ ░█░ ██▄ ▄""")
+        break
+    elif start != "YES":
+        print("Please enter Yes/No")
+        continue
+
+    clear()
+    menu()
+
+    # User inputs the money needed
+    while True:
+        try:
+            insert_money = float(input("Enter amount: $"))
+            if insert_money < 0:
+                print("Amount Error. Please insert money!")
+                continue
+            else:
+                user_money += insert_money
+                print(f"Your balance: ${user_money}")
+                break
+        except ValueError:
+            print("Invalid input. Please enter a valid amount.")
+
+    # Choosing items
+    while True:
+        choose = input("Enter the item code: ").upper()
+        all_items = {**coffee_drinks, **sweet_snacks}
+        chosen_item = all_items.get(choose)
+
+        if chosen_item:
+            while chosen_item["Stock"] == 0:
+                print(f"Sorry, the {chosen_item['Name']} is out of stock.")
+                choose = input("Enter a different item code: ").upper()
+                chosen_item = all_items.get(choose)
+
+            while user_money < chosen_item["Price"]:
+                print("Insufficient balance.")
+                try:
+                    insert_money_again = float(input("Please insert more money: $"))
+                    user_money += insert_money_again
+                except ValueError:
+                    print("Invalid input. Please enter a valid amount.")
+            
+            user_money -= chosen_item["Price"]
+            stock_system(chosen_item, 1)
+            clear()
+            menu()
+            print(f"You have purchased {chosen_item['Name']} for ${chosen_item['Price']}.")
+            time.sleep(2)
+            print(f"Please collect your {chosen_item['Name']}. Your balance: ${user_money}")
+
+            # Option to buy more
+            buy_more = input("Would you like to buy more? (Yes/No): ").upper()
+            if buy_more == "YES":
+                continue
+            elif buy_more == "NO":
+                print("Thank you for your purchase. Have a great day!")
+                break
+        else:
+            print("Error: Item not found.")
+            continue
+        break
+
+    print(f"Your change is ${user_money}")
+    time.sleep(2)
+    print("""
+█▀▀ █▀█ █▀█ █▀▄ █▄▄ █▄█ █▀▀
+█▄█ █▄█ █▄█ █▄▀ █▄█ ░█░ ██▄""")
+    break
+#End of the machine :P
